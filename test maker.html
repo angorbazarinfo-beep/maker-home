@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>🛍 Modern Order Dashboard</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
+  * { box-sizing: border-box; margin:0; padding:0; }
+  body {
+    font-family: 'Poppins', sans-serif;
+    background: linear-gradient(135deg, #fbc2eb, #a6c1ee);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-bottom: 50px;
+  }
+  header { margin-top: 30px; font-size: 2em; color: #ff6f61; text-shadow: 1px 1px 3px rgba(0,0,0,0.2); }
+  .container { display: grid; grid-template-columns: repeat(4, 1fr); gap: 25px; width: 90%; max-width: 1200px; margin: 40px 0; }
+  @media (max-width: 992px) { .container { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 600px) { .container { grid-template-columns: repeat(2, 1fr); } }
+  .product {
+    background: rgba(255,255,255,0.3);
+    border-radius: 20px;
+    padding: 25px 15px;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+    text-align: center;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+  }
+  .product::before {
+    content:"";
+    position: absolute;
+    top: -50%; left: -50%;
+    width: 200%; height: 200%;
+    background: linear-gradient(45deg, rgba(255,255,255,0.15), rgba(255,255,255,0));
+    transform: rotate(45deg);
+    transition: 0.5s;
+  }
+  .product:hover::before { top: -70%; left: -70%; }
+  .product:hover { transform: translateY(-10px); box-shadow: 0 15px 30px rgba(0,0,0,0.25); }
+  .product img { width: 100px; height: 100px; border-radius: 50%; object-fit: cover; margin-bottom: 15px; border: 3px solid rgba(255,255,255,0.5); }
+  .product h3 { color: #ff6f61; font-size: 1.3em; margin-bottom: 10px; }
+  button { padding: 10px 25px; border-radius: 25px; border: none; font-weight: bold; background: linear-gradient(135deg, #ff6f61, #ff3d00); color: white; cursor: pointer; transition: 0.3s; }
+  button:hover { transform: scale(1.05); background: linear-gradient(135deg, #ff3d00, #e64a19); }
+
+  .modal-overlay {
+    display: none; position: fixed; top:0; left:0; width:100%; height:100%;
+    background: rgba(0,0,0,0.5); backdrop-filter: blur(5px);
+    justify-content: center; align-items: center; z-index: 999;
+  }
+  .modal-content {
+    background: rgba(255,255,255,0.95);
+    border-radius: 20px; padding: 30px 25px; width: 90%; max-width: 450px;
+    display: flex; flex-direction: column; align-items: center;
+    animation: slideDown 0.5s ease; position: relative;
+  }
+  @keyframes slideDown { from { opacity:0; transform: translateY(-50px);} to {opacity:1; transform: translateY(0);} }
+  .modal-content h3 { color:#ff6f61; margin-bottom: 20px; text-align:center; }
+  .modal-content input {
+    width: 90%; padding: 12px; margin: 10px 0;
+    border-radius: 12px; border: 1px solid #ddd; font-size: 1em;
+  }
+  #submitBtn {
+    margin-top: 15px; width: 95%; font-weight: bold;
+    padding: 12px; border-radius: 12px; border: none; cursor: pointer;
+    background: linear-gradient(135deg, #ff6f61, #ff3d00);
+    color: white; font-size: 1em; transition: 0.3s;
+  }
+  #submitBtn:hover { transform: scale(1.05); background: linear-gradient(135deg, #ff3d00, #e64a19); }
+  .close-btn { position: absolute; top: 15px; right: 20px; background: transparent; border:none; font-size: 1.5em; color: #ff6f61; cursor: pointer; }
+</style>
+</head>
+<body>
+
+<header>🛍 Modern Order Dashboard</header>
+
+<div class="container">
+  <div class="product" onclick="openModal('1kg Rice')">
+    <img src="https://i.ibb.co/Ny6Gg4J/rice.jpg" alt="Rice">
+    <h3>1kg Rice</h3>
+    <button>Order Now</button>
+  </div>
+  <div class="product" onclick="openModal('2kg Sugar')">
+    <img src="https://i.ibb.co/hWSKzQy/sugar.jpg" alt="Sugar">
+    <h3>2kg Sugar</h3>
+    <button>Order Now</button>
+  </div>
+  <div class="product" onclick="openModal('1L Oil')">
+    <img src="https://i.ibb.co/vm8WLdW/oil.jpg" alt="Oil">
+    <h3>1L Oil</h3>
+    <button>Order Now</button>
+  </div>
+  <div class="product" onclick="openModal('5kg Flour')">
+    <img src="https://i.ibb.co/9tnLzDc/flour.jpg" alt="Flour">
+    <h3>5kg Flour</h3>
+    <button>Order Now</button>
+  </div>
+</div>
+
+<!-- Modal -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal-content">
+    <button class="close-btn" onclick="closeModal()">×</button>
+    <h3>📝 Fill Your Information</h3>
+    <form id="orderForm" onsubmit="submitOrder(event)">
+      <input type="hidden" id="product" name="product">
+      <input type="text" id="name" name="name" placeholder="Your Name" required>
+      <input type="tel" id="phone" name="phone" placeholder="Phone Number" required>
+      <input type="text" id="address" name="address" placeholder="Address" required>
+      <input type="email" id="email" name="email" placeholder="Email" required>
+
+      <!-- 🖼 Photo upload fields -->
+      <label>Upload Photo 1:</label>
+      <input type="file" name="photo1" accept="image/*" required>
+      <label>Upload Photo 2:</label>
+      <input type="file" name="photo2" accept="image/*">
+      <label>Upload Photo 3:</label>
+      <input type="file" name="photo3" accept="image/*">
+
+      <button type="submit" id="submitBtn">✅ Place Order</button>
+    </form>
+  </div>
+</div>
+
+<script>
+let isSubmitting = false;
+
+function openModal(productName){
+  document.getElementById('product').value = productName;
+  document.getElementById('modalOverlay').style.display = 'flex';
+}
+
+function closeModal(){
+  document.getElementById('modalOverlay').style.display = 'none';
+}
+
+function submitOrder(e){
+  e.preventDefault();
+  if(isSubmitting) return;
+  isSubmitting = true;
+
+  const form = e.target;
+  const submitBtn = document.getElementById('submitBtn');
+  submitBtn.disabled = true;
+  submitBtn.textContent = "⏳ Uploading...";
+
+  const formData = new FormData(form);
+
+  fetch("https://script.google.com/macros/s/AKfycbx6Cz1Nqg2qpw8th4g8MzuBVwHbZnbLiylcq9dBVpAS0Yhz8db7WyTcfW0a_L4eOSiw/exec", {
+    method: "POST",
+    body: formData
+  })
+  .then(res => res.text())
+  .then(() => {
+    alert("✅ Order placed successfully with photos!");
+    form.reset();
+    closeModal();
+  })
+  .catch(err => alert("❌ Something went wrong: " + err))
+  .finally(() => {
+    isSubmitting = false;
+    submitBtn.disabled = false;
+    submitBtn.textContent = "✅ Place Order";
+  });
+}
+</script>
+
+</body>
+</html>
